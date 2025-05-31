@@ -9,5 +9,5 @@ export default middleware(req => {
     }
 })
 export const config = {
-    matcher: ['/dashboard/:path*'],
+    matcher: ['/((?!api|static|.*\\..*|_next|favicon.ico|robots.txt).*)'],
 }

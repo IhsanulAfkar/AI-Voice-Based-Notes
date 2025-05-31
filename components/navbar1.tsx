@@ -139,8 +139,8 @@ const Navbar1 = ({
   session
 }: Navbar1Props) => {
   return (
-    <section className="py-4">
-      <div className="container mx-auto">
+    <section className="py-4 ">
+      <div className="container lg:px-12 md:px-8 px-4 mx-auto">
         {/* Desktop Menu */}
         <nav className="hidden justify-between lg:flex">
           <div className="flex items-center gap-6">

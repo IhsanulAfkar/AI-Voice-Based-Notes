@@ -7,15 +7,15 @@ export const authConfig = {
     providers: [
         Google
     ],
-    pages: {
-        signIn: route('signin')
-    },
-    secret:process.env.AUTH_SECRET,
-    session:{
-        strategy:'database'
-    }
+
+
 } satisfies NextAuthConfig
 export const { handlers, signIn, signOut, auth } = NextAuth({
     adapter: PrismaAdapter(prisma),
+    session: { strategy: "jwt" },
+    pages: {
+        signIn: route('signin')
+    },
+    secret: process.env.AUTH_SECRET,
     ...authConfig
 })

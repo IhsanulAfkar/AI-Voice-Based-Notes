@@ -22,9 +22,10 @@ model User {
   sessions      Session[]
   Authenticator Authenticator[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Note      Note[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Note         Note[]
+  Conversation Conversation[]
 }
 
 model Account {
@@ -107,9 +108,11 @@ model Note {
 model Conversation {
   id         Int       @id @default(autoincrement())
   title      String?
+  user_id    String
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   Message    Message[]
+  User       User      @relation(fields: [user_id], references: [id])
 
   @@map("conversations")
 }
