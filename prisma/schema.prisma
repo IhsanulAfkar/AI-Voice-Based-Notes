@@ -92,6 +92,7 @@ enum Status {
 
 model Note {
   id         Int       @id @default(autoincrement())
+  uuid       String    @default(uuid())
   user_id    String
   color      String
   content    String    @db.Text
@@ -107,6 +108,7 @@ model Note {
 
 model Conversation {
   id         Int       @id @default(autoincrement())
+  uuid       String    @default(uuid())
   title      String?
   user_id    String
   created_at DateTime  @default(now())
@@ -119,6 +121,7 @@ model Conversation {
 
 model Message {
   id              Int          @id @default(autoincrement())
+  uuid            String       @default(uuid())
   role            Role
   content         String       @db.Text
   createdAt       DateTime     @default(now())

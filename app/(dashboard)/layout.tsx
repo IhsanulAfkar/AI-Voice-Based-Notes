@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import { AppSidebar } from '@/components/app-sidebar'
 
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { stringifyObject } from '@/lib/utils'
 import { NextPage } from 'next'
 import { ReactNode } from 'react'
 
@@ -11,9 +12,9 @@ interface Props {
 }
 
 const Layout: NextPage<Props> = async ({ children }) => {
-    const session = await auth()
+    let session = await auth()
     return <SidebarProvider>
-        <AppSidebar session={session} />
+        <AppSidebar user={session?.user} />
         <SidebarInset className=''>
             <header className="fixed flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
                 <div className="flex items-center gap-2 px-4">

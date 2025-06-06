@@ -7,7 +7,17 @@ export const authConfig = {
     providers: [
         Google
     ],
-
+    callbacks: {
+        async session({ token, session }) {
+            if (token.sub && session.user) {
+                session.user.id = token.sub
+            }
+            return session;
+        },
+        async jwt({ token, user, profile }) {
+            return token;
+        },
+    },
 
 } satisfies NextAuthConfig
 export const { handlers, signIn, signOut, auth } = NextAuth({

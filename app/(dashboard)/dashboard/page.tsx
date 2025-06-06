@@ -7,7 +7,8 @@ import { NextPage } from 'next'
 interface Props { }
 
 const Page: NextPage<Props> = async ({ }) => {
-  const session = await auth()
+  let session = await auth()
+  
   return <div className='flex-1 flex items-start gap-4 '>
     <ChatSection session={session} />
     {/* <NoteSection session={session} /> */}

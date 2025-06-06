@@ -25,22 +25,25 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Conversation } from "@prisma/client"
+import route from "@/route"
 
 export function NavConversation({
   conversations,
 }: {
-  conversations: Conversation[]
+  conversations: Conversation[] | undefined
 }) {
   const { isMobile } = useSidebar()
-
+  if (!conversations) return null
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Projects</SidebarGroupLabel>
+      <SidebarGroupLabel>History</SidebarGroupLabel>
       <SidebarMenu>
         {conversations.map((item) => (
           <SidebarMenuItem key={item.id}>
             <SidebarMenuButton asChild>
-              <a href={item.id + '/'}>
+              <a href={route('dashboard.conversation', {
+                conversationId: item.id
+              })}>
                 <span>{item.title}</span>
               </a>
             </SidebarMenuButton>

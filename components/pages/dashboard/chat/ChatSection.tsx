@@ -5,42 +5,154 @@ import { NextPage } from 'next'
 import Message from './Message'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import MessageList from './MessageList'
+import { usePathname, useRouter } from 'next/navigation'
+import { Conversation } from '@prisma/client'
+import route from '@/route'
+import { useConversationHistory } from '@/hooks/useConversationHistory'
 
 interface Props {
-  session: TSession | null
+  session: TSession | null,
+  conversationId?: string
 }
 
-const ChatSection: NextPage<Props> = ({ }) => {
+const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
+  const { data, refetch } = useConversationHistory(conversationId)
+  const currentDate = new Date()
+  const router = useRouter();
+  const pathname = usePathname();
   const [inputQuery, setInputQuery] = useState('')
+  const [messages, setmessages] = useState<typeof Message[]>([])
+  const [currentMessage, setcurrentMessage] = useState('')
+  const [isStreaming, setIsStreaming] = useState(false)
   const sendChat = async () => {
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({
-        message: inputQuery
+    if (!inputQuery.trim()) return;
+    if (!conversationId) {
+      // create new conversation with user message
+      const response = await fetch('/api/conversation', {
+        method: 'POST',
+        body: JSON.stringify({
+          message: inputQuery
+        })
       })
-    })
-    if (response.ok) {
-      setInputQuery('')
-      toast.success('asd')
+      if (response.ok) {
+        const result: Conversation = await response.json();
+        sessionStorage.setItem('newConversationId', result.uuid);
+        router.push(route('dashboard.conversation', { conversationId: result.uuid }))
+      } else {
+        toast.error('Send Chat Failed')
+        console.error(response.status)
+      }
+    } else {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          message: inputQuery,
+          user_id: session?.user?.id,
+          conversation_id: conversationId
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      if (response.ok) {
+        setInputQuery('')
+        const reader = response.body?.getReader();
+        if (!reader) {
+          toast.error('Failed to fetch chat')
+          return
+        }
+        const decoder = new TextDecoder();
+        let partial = '';
+        let done = false;
+
+        const chunks = []; // to store all 'response' text parts
+        setIsStreaming(true)
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+
+          if (value) {
+            partial += decoder.decode(value, { stream: true });
+
+            // Process each complete line (split by newline)
+            let lines = partial.split('\n');
+
+            // Keep the last line in case it's incomplete
+            partial = lines.pop() || '';
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data:')) {
+                try {
+                  const jsonStr = trimmed.replace(/^data:\s*/, '');
+                  const event = JSON.parse(jsonStr);
+
+                  if (event.response) {
+                    chunks.push(event.response);
+                    setcurrentMessage(prev => prev + event.response);
+                  }
+
+                  if (event.done) {
+                    setIsStreaming(false)
+                    break;
+                  }
+                } catch (err) {
+                  setIsStreaming(false)
+                  console.error('Error parsing JSON from chunk:', err);
+                }
+              }
+            }
+          }
+        }
+      } else {
+        toast.error('Send Chat Failed')
+        setIsStreaming(false)
+      }
     }
-    console.log(response.status, response.json())
   }
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       sendChat()
     }
   };
+
   useEffect(() => {
+    const storageConversationId = sessionStorage.getItem('newConversationId');
+    let eventSource: EventSource | null
+    if (storageConversationId && storageConversationId === conversationId) {
+      // 
+      const eventSource = new EventSource(`/api/conversation/${storageConversationId}/first`)
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        if (!data.done) {
+          // chunks
+          setcurrentMessage(prev => prev + data.response)
+        } else {
+          refetch()
+        }
+        sessionStorage.removeItem('newConversationId')
+      }
+      eventSource.onerror = () => {
+        eventSource.close()
+      }
+
+    }
+    return () => {
+      if (eventSource) {
+        eventSource.close()
+      }
+    }
   }, [])
+  useEffect(() => {
+    refetch()
+  },[isStreaming])
   return <>
     <div className="flex-1 flex flex-col w-full h-[90vh] relative rounded-md">
-      <div
-        id="chat-container"
-        className="flex-1 overflow-y-auto flex flex-col gap-4 pr-4 w-full max-w-4xl mx-auto"
-      >
-        {[1, 2, 3, 4, 5].map((i) => (<Message key={i} />
-        ))}
-      </div>
+      {
+        data &&
+        <MessageList messages={data} isStreaming={isStreaming} currentMessage={currentMessage} currentDate={currentDate} />
+      }
 
       <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white p-3 shadow-md rounded-lg flex items-center z-10 border w-full max-w-sm">
         <input type="text" className='appearance-none outline-none w-full' placeholder='Ask Anything' value={inputQuery} onChange={e => setInputQuery(e.target.value)} onKeyDown={handleKeyDown} />

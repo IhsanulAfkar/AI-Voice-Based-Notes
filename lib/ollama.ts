@@ -23,6 +23,9 @@ export const getOllamaResponse = async (prompt: string) => {
     }
 }
 export const generateConversationTitle = async (query: string, answer: string) => {
+    if (query == '' || answer == '') {
+        return ""
+    }
     let prompt = `
     Make short title (5 - 10 words) that summarize this conversation in English.
     The title must describe the core from this question and answer

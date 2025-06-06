@@ -12,6 +12,7 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
+  Plus
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -26,11 +27,13 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import Image from "next/image"
-import { Session } from 'next-auth'
+import { Session, User } from 'next-auth'
 import { NavConversation } from "./nav-conversations"
 import { Conversation } from "@prisma/client"
+import { useConversations } from "@/hooks/useConversations"
+import route from "@/route"
 // This is sample data.
-const data = {
+const dummyData = {
   user: {
     name: "shadcn",
     email: "m@example.com",
@@ -38,106 +41,70 @@ const data = {
   },
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "New Chat",
+      url: route('dashboard'),
+      icon: Plus,
       isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
     },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
+
+    // {
+    //   title: "Documentation",
+    //   url: "#",
+    //   icon: BookOpen,
+    //   items: [
+    //     {
+    //       title: "Introduction",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Get Started",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Tutorials",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Changelog",
+    //       url: "#",
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: "Settings",
+    //   url: "#",
+    //   icon: Settings2,
+    //   items: [
+    //     {
+    //       title: "General",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Team",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Billing",
+    //       url: "#",
+    //     },
+    //     {
+    //       title: "Limits",
+    //       url: "#",
+    //     },
+    //   ],
+    // },
   ],
 }
-const dummyConversations: Conversation[] = [
-  {
-    id: 1,
-    title: 'lorem ipsum color deit lorem ipsum',
-    created_at: new Date("2024-01-01T12:00:00Z"),
-    updated_at: new Date("2024-01-01T12:00:00Z")
-  }
-]
+
 type TAppSidebar = {
   props?: React.ComponentProps<typeof Sidebar>,
-  session?: Session | null
+  user?: User | null
 }
-export function AppSidebar({ props, session }: TAppSidebar) {
-  
+export function AppSidebar({ props, user }: TAppSidebar) {
+  const { data, error, isLoading } = useConversations()
+  if (error) {
+    console.error(error)
+  }
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -147,11 +114,11 @@ export function AppSidebar({ props, session }: TAppSidebar) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavConversation conversations={dummyConversations} />
+        <NavMain items={dummyData.navMain} />
+        <NavConversation conversations={data} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={session?.user!} />
+        <NavUser user={user!} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
