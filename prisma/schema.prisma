@@ -24,7 +24,6 @@ model User {
 
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
-  Note         Note[]
   Conversation Conversation[]
 }
 
@@ -90,18 +89,26 @@ enum Status {
   CANCELLED
 }
 
+enum Color {
+  red
+  green
+  blue
+  pink
+  yellow
+  white
+  gray
+}
+
 model Note {
-  id         Int       @id @default(autoincrement())
-  uuid       String    @default(uuid())
-  user_id    String
-  color      String
-  content    String    @db.Text
-  order      Int
-  status     Status    @default(CREATED)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  User       User      @relation(fields: [user_id], references: [id])
-  Message    Message[]
+  id             Int          @id @default(autoincrement())
+  uuid           String       @default(uuid())
+  content        String       @db.Text
+  conversationId Int
+  status         Status       @default(CREATED)
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String?
 
   @@map("notes")
 }
@@ -115,20 +122,20 @@ model Conversation {
   updated_at DateTime  @updatedAt
   Message    Message[]
   User       User      @relation(fields: [user_id], references: [id])
+  Note       Note[]
 
   @@map("conversations")
 }
 
 model Message {
-  id              Int          @id @default(autoincrement())
-  uuid            String       @default(uuid())
-  role            Role
-  content         String       @db.Text
-  createdAt       DateTime     @default(now())
-  note_id         Int?
+  id        Int      @id @default(autoincrement())
+  uuid      String   @default(uuid())
+  role      Role
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
   action          Action?
   conversation_id Int
-  note            Note?        @relation(fields: [note_id], references: [id], onDelete: SetNull)
   conversation    Conversation @relation(fields: [conversation_id], references: [id])
 }
 

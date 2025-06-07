@@ -129,3 +129,9 @@
 *::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+
+.ProseMirror {
+  background-color: #F5F7F7; 
+  padding: 0.75rem;
+  border:none;
+}

@@ -10,6 +10,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Conversation } from '@prisma/client'
 import route from '@/route'
 import { useConversationHistory } from '@/hooks/useConversationHistory'
+import { Textarea } from '@/components/ui/textarea'
 
 interface Props {
   session: TSession | null,
@@ -27,12 +28,14 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
   const [isStreaming, setIsStreaming] = useState(false)
   const sendChat = async () => {
     if (!inputQuery.trim()) return;
+    const newChat = inputQuery.trim()
+    setInputQuery('')
     if (!conversationId) {
       // create new conversation with user message
       const response = await fetch('/api/conversation', {
         method: 'POST',
         body: JSON.stringify({
-          message: inputQuery
+          message: newChat
         })
       })
       if (response.ok) {
@@ -44,10 +47,12 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
         console.error(response.status)
       }
     } else {
+
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         body: JSON.stringify({
-          message: inputQuery,
+          message: newChat,
           user_id: session?.user?.id,
           conversation_id: conversationId
         }),
@@ -56,7 +61,14 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
         }
       })
       if (response.ok) {
-        setInputQuery('')
+        const contentType = response.headers.get('Content-Type');
+        if (!contentType?.includes('text/event-stream')) {
+          const body = await response.json()
+          toast.success(body.message)
+          // quick fix
+          window.location.reload()
+          return
+        }
         const reader = response.body?.getReader();
         if (!reader) {
           toast.error('Failed to fetch chat')
@@ -111,8 +123,9 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
       }
     }
   }
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
       sendChat()
     }
   };
@@ -146,7 +159,7 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
   }, [])
   useEffect(() => {
     refetch()
-  },[isStreaming])
+  }, [isStreaming])
   return <>
     <div className="flex-1 flex flex-col w-full h-[90vh] relative rounded-md">
       {
@@ -154,8 +167,8 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
         <MessageList messages={data} isStreaming={isStreaming} currentMessage={currentMessage} currentDate={currentDate} />
       }
 
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white p-3 shadow-md rounded-lg flex items-center z-10 border w-full max-w-sm">
-        <input type="text" className='appearance-none outline-none w-full' placeholder='Ask Anything' value={inputQuery} onChange={e => setInputQuery(e.target.value)} onKeyDown={handleKeyDown} />
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white shadow-md rounded-lg flex items-center z-10 border w-full max-w-sm">
+        <Textarea onChange={e => setInputQuery(e.target.value)} onKeyDown={handleKeyDown} value={inputQuery} placeholder='Ask Anything' />
       </div>
     </div>
 

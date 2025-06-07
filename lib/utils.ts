@@ -1,7 +1,9 @@
 import { clsx, type ClassValue } from "clsx"
+import { marked } from "marked";
 import { Session } from "next-auth"
 import { twMerge } from "tailwind-merge"
-
+import TurndownService from 'turndown';
+const turndownService = new TurndownService();
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -37,4 +39,11 @@ export function stringifyObject(obj: any): any {
 
   // For functions, symbols, etc.
   return obj;
+}
+
+export const htmlToMarkdown = (html: string) => {
+  return turndownService.turndown(html);
+}
+export const markdownToHtml = (markdown: string) => {
+  return marked(markdown, { async: false });
 }

@@ -21,7 +21,7 @@ const Layout: NextPage<Props> = async ({ children }) => {
                     <SidebarTrigger className="-ml-1" />
                 </div>
             </header>
-            <div className="flex flex-1 flex-col gap-4 px-4 pb-4 pt-12 h-full max-h-screen">
+            <div className="flex flex-1 flex-col gap-4 px-4 pb-4 pt-12 h-full max-h-screen bg-[#FAFBFB]">
                 {children}
             </div>
         </SidebarInset>

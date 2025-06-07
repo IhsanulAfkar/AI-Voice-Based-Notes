@@ -42,7 +42,7 @@ export function NavConversation({
           <SidebarMenuItem key={item.id}>
             <SidebarMenuButton asChild>
               <a href={route('dashboard.conversation', {
-                conversationId: item.id
+                conversationId: item.uuid
               })}>
                 <span>{item.title}</span>
               </a>
