@@ -11,6 +11,8 @@ import { Conversation } from '@prisma/client'
 import route from '@/route'
 import { useConversationHistory } from '@/hooks/useConversationHistory'
 import { Textarea } from '@/components/ui/textarea'
+import { Mic } from 'lucide-react'
+import RecordSection from './RecordSection'
 
 interface Props {
   session: TSession | null,
@@ -47,8 +49,6 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
         console.error(response.status)
       }
     } else {
-
-
       const response = await fetch('/api/chat', {
         method: 'POST',
         body: JSON.stringify({
@@ -167,8 +167,11 @@ const ChatSection: NextPage<Props> = ({ session, conversationId }) => {
         <MessageList messages={data} isStreaming={isStreaming} currentMessage={currentMessage} currentDate={currentDate} />
       }
 
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-0 bg-white shadow-md rounded-lg flex items-center z-10 border w-full max-w-sm">
-        <Textarea onChange={e => setInputQuery(e.target.value)} onKeyDown={handleKeyDown} value={inputQuery} placeholder='Ask Anything' />
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex items-center gap-4 z-10  w-full max-w-lg">
+        <div className='bg-white shadow-md rounded-lg w-full max-w-sm border '>
+          <Textarea onChange={e => setInputQuery(e.target.value)} onKeyDown={handleKeyDown} value={inputQuery} placeholder='Ask Anything' />
+        </div>
+        <RecordSection conversationId={conversationId} />
       </div>
     </div>
 

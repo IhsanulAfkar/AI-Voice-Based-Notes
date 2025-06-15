@@ -1,7 +1,7 @@
 // pages/api/yourroute.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { constructPrompt, determinePropmt, generateConversationTitle, getOllamaResponse } from '@/lib/ollama';
-import { config } from '@/config';
+import { config  as envConfig} from '@/config';
 import { apiPagesMiddleware } from '@/app/api/middleware';
 import { AuthenticatedSession, TOllamaResponse } from '@/types';
 import { auth } from '@/auth';
@@ -13,7 +13,11 @@ interface TBody {
   user_id: string;
   conversation_id: string;
 }
-
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   // const session = await auth(req, res)
   /** 
@@ -152,13 +156,13 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     try {
-      const response = await fetch(config.OLLAMA_URL, {
+      const response = await fetch(envConfig.OLLAMA_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: config.OLLAMA_MODEL,
+          model: envConfig.OLLAMA_MODEL,
           prompt: fullPrompt,
           stream: true,
         }),
